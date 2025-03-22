@@ -1,7 +1,12 @@
 from PyPDF2 import PdfReader, PdfWriter
 from commons import ocr
-import tempfile, shutil, os
+from commons import ia_util
+from tokenizers import Tokenizer
+import tempfile
+import shutil
+import os
 import ntpath
+from commons.db_utils import create_chromadb_collection, chormadb_insert_data
 
 from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -137,14 +142,16 @@ def process_document(path: str):
 
     # contamos el número de tokens
     token = count_token(current_content)
+
+    # Generamos un archivo con el texto obtenido del ocr
+    ocr_file = create_file(work_dir, sname, content=current_content)
+
     # dividimos el texto en secciones para poder generar los emedings
     loader = UnstructuredFileLoader(ocr_file)
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
 
     docs = text_splitter.split_documents(documents)
-
-    ocr_file = create_file(work_dir, sname, content=current_content)
 
     metadata = {
         "token": token,
@@ -153,7 +160,7 @@ def process_document(path: str):
     }
     collection = create_chromadb_collection(sname, metadata)
 
-    ids, new_content, new_embeddings = generate_documents(docs, embeddings_engine)
+    ids, new_content, new_embeddings = ia_util.generate_documents(docs)
 
     print("Insertamos los documentos en la base de datos de chromadb.")
     chormadb_insert_data(collection, ids, new_content, new_embeddings)
