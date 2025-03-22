@@ -11,12 +11,14 @@ _chroma_client = chromadb.HttpClient(
     port=PORT_CHROMADB,
 )
 
+
 def create_chromadb_collection(name, metadata):
     collection = _chroma_client.create_collection(
         name,
         metadata=metadata,
     )
     return collection
+
 
 def chormadb_insert_data(collection, ids, content, embeddings):
     collection.add(documents=content, ids=ids, embeddings=embeddings)

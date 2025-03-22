@@ -8,6 +8,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 tmp_dir = tempfile.gettempdir()
 
+
 def path_leaf(path):
     """
     Extrae el nombre del archivo de una ruta dada.
@@ -55,6 +56,7 @@ def prepare_dir(path):
     shutil.copyfile(path, new_path)
     return work_dir, fname
 
+
 def split_pdf(path, work_dir, fname):
     """
     Divide un archivo PDF en páginas individuales y guarda cada página como un archivo PDF separado.
@@ -83,6 +85,7 @@ def split_pdf(path, work_dir, fname):
 
     return pages
 
+
 def create_file(path, file_name, content_type="text/plain", content=None):
     """
     Crea un archivo en la ruta especificada con el nombre y contenido dados.
@@ -102,16 +105,17 @@ def create_file(path, file_name, content_type="text/plain", content=None):
     f.close
     return ocr_file
 
+
 def count_token(content):
     tokenizer = Tokenizer.from_file("./gpt2_tokenizer/tokenizer.json")
     output = tokenizer.encode(content)
 
     return len(output.ids)
 
-def process_document(path: str):
 
+def process_document(path: str):
     work_dir, fname = prepare_dir(path)
-    # Dividimos el documento pdf en páginas para no tener problemas con el OCR 
+    # Dividimos el documento pdf en páginas para no tener problemas con el OCR
     pages = split_pdf(path, work_dir, fname)
 
     # Nombre del archivo sin extensión
@@ -136,14 +140,11 @@ def process_document(path: str):
     # dividimos el texto en secciones para poder generar los emedings
     loader = UnstructuredFileLoader(ocr_file)
     documents = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000, chunk_overlap=20
-    )
-    
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20)
+
     docs = text_splitter.split_documents(documents)
 
     ocr_file = create_file(work_dir, sname, content=current_content)
-
 
     metadata = {
         "token": token,
@@ -152,9 +153,7 @@ def process_document(path: str):
     }
     collection = create_chromadb_collection(sname, metadata)
 
-    ids, new_content, new_embeddings = generate_documents(
-        docs, embeddings_engine
-    )
+    ids, new_content, new_embeddings = generate_documents(docs, embeddings_engine)
 
     print("Insertamos los documentos en la base de datos de chromadb.")
-    chormadb_insert_data(collection, ids, new_content, new_embeddings)    
+    chormadb_insert_data(collection, ids, new_content, new_embeddings)

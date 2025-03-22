@@ -22,7 +22,7 @@ with demo:
             gr.Markdown("## Introduce tu pregunta")
             question = gr.Textbox(label="Preguntame")
 
-    # Funciones 
+    # Funciones
     upload_file.change(
         process_document,
         inputs=[upload_file],
