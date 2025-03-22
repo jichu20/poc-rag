@@ -1,0 +1,31 @@
+version: '3'
+services:
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 8002:8000
+      - 9443:9443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - portainer_data:/data
+    networks:
+      - web
+  chromadb:
+    image: chromadb/chroma
+    # ports:
+    #   - 8000:8000
+    volumes:
+      - chroma-data:/chroma/chroma/
+    networks:
+      - web
+  
+volumes:
+  chroma-data:
+    external: true
+    name: chroma-data
+  portainer_data:
+    external: true
+    name: portainer_data
+networks:
+  web:
+    driver: bridge
